@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -52,6 +52,9 @@ export default function DatasetsPage() {
     votedFor: [],
   });
   const [appliedFilters, setAppliedFilters] = useState({ ...filters });
+  const [loadedCount, setLoadedCount] = useState(12); // Number of datasets initially loaded
+  const itemsPerLoad = 12; // Number of datasets to load per "Load more" click
+  const loadMoreRef = useRef(null); // Reference for Intersection Observer
 
   const recentQueries = [
     "Social Media Impact on Teen Mental Health",
@@ -191,6 +194,15 @@ export default function DatasetsPage() {
 
   const trendingDatasets = generateDemoDatasets();
 
+  // Reset loaded count when search, category, or sorting changes
+  useEffect(() => {
+    setLoadedCount(itemsPerLoad);
+  }, [search, selectedCategory, sortBy, appliedFilters]);
+
+  const handleLoadMore = () => {
+    setLoadedCount((prev) => prev + itemsPerLoad);
+  };
+
   const handleApplyFilters = () => {
     setAppliedFilters({ ...filters });
     setIsFiltersPanelOpen(false);
@@ -258,6 +270,33 @@ export default function DatasetsPage() {
           return heatB - heatA;
       }
     });
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // When the load more button comes into view, automatically load more
+        if (entries[0].isIntersecting && loadedCount < filteredDatasets.length) {
+          setLoadedCount((prev) => prev + itemsPerLoad);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "100px", // Start loading 100px before element comes into view
+        threshold: 0.1,
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [loadedCount, filteredDatasets.length]);
 
   return (
     <PageLayout>
@@ -543,7 +582,7 @@ export default function DatasetsPage() {
 
             {/* Main Content */}
             <Box>
-              {/* Header with Controls - Only show controls if subcategory selected */}
+              {/* Header with Trending Datasets Title */}
               <Box
                 sx={{
                   display: "flex",
@@ -668,8 +707,7 @@ export default function DatasetsPage() {
                 )}
               </Box>
 
-              {/* Category Chips Row - Only show if category/subcategory selected */}
-              {selectedCategory && (
+              {/* Category Chips Row - Always show with "All Datasets" visible by default */}
               <Box
                 sx={{
                   display: "flex",
@@ -679,7 +717,7 @@ export default function DatasetsPage() {
                   alignItems: "center",
                 }}
               >
-                {/* "All Datasets" Chip */}
+                {/* "All Datasets" Chip - Always visible */}
                 <Chip
                   label="All Datasets"
                   onClick={() => setSelectedCategory(null)}
@@ -701,7 +739,7 @@ export default function DatasetsPage() {
                   }}
                 />
 
-                {/* Main Category Chip (if selected) */}
+                {/* Main Category Chip - Shows when category is selected */}
                 {selectedCategory && (
                   <Chip
                     label={selectedCategory.name}
@@ -744,7 +782,7 @@ export default function DatasetsPage() {
                   />
                 )}
 
-                {/* Subcategory Chips (if selected) */}
+                {/* Subcategory Chips - Dynamically appear when category is selected */}
                 {selectedCategory &&
                   selectedCategory.subcategories &&
                   selectedCategory.subcategories.map((subcategory) => (
@@ -808,7 +846,6 @@ export default function DatasetsPage() {
                     />
                   ))}
               </Box>
-              )}
 
               {/* Datasets Grid/List */}
               <Box
@@ -827,7 +864,7 @@ export default function DatasetsPage() {
                 }}
               >
                 {filteredDatasets.length > 0 ? (
-                  filteredDatasets.map((dataset) => (
+                  filteredDatasets.slice(0, loadedCount).map((dataset) => (
                     <DatasetCard
                       key={dataset.id}
                       dataset={dataset}
@@ -855,6 +892,45 @@ export default function DatasetsPage() {
                   </Box>
                 )}
               </Box>
+
+              {/* Load More Button */}
+              {filteredDatasets.length > loadedCount && (
+                <Box
+                  ref={loadMoreRef}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    mt: 5,
+                    mb: 2,
+                  }}
+                >
+                  <Box
+                    onClick={handleLoadMore}
+                    sx={{
+                      px: 3.5,
+                      py: 1.2,
+                      backgroundColor: PRIMARY_COLOR,
+                      color: "#fff",
+                      borderRadius: "8px",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      border: `2px solid ${PRIMARY_COLOR}`,
+                      "&:hover": {
+                        backgroundColor: "#50ada8",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 6px 16px rgba(97, 197, 195, 0.2)",
+                      },
+                      "&:active": {
+                        transform: "translateY(0)",
+                      },
+                    }}
+                  >
+                    Load More
+                  </Box>
+                </Box>
+              )}
             </Box>
           </Box>
         </Container>
