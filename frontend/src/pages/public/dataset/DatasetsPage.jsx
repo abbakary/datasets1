@@ -175,6 +175,7 @@ export default function DatasetsPage() {
             votes: template.votes + id,
             notebooks: (id % 15) + 1,
             image,
+            price: ((id * 19) % 500 + 10).toFixed(2), // Price in USD (demo data)
             avatars: [
               `https://i.pravatar.cc/40?img=${(id % 150) + 1}`,
               `https://i.pravatar.cc/40?img=${((id + 1) % 150) + 1}`,
@@ -1031,20 +1032,7 @@ function DatasetCard({ dataset, viewType = "grid" }) {
           </Box>
 
           {/* Footer Info */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              {dataset.avatars.slice(0, 2).map((avatar, index) => (
-                <Avatar
-                  key={index}
-                  src={avatar}
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    border: `1px solid ${PRIMARY_COLOR}`,
-                  }}
-                />
-              ))}
-            </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1, justifyContent: "space-between" }}>
             <Box
               sx={{
                 display: "flex",
@@ -1058,6 +1046,21 @@ function DatasetCard({ dataset, viewType = "grid" }) {
             >
               <ChevronUp size={14} />
               <span>{dataset.votes}</span>
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                padding: "6px 12px",
+                backgroundColor: "#e6f7f6",
+                borderRadius: "6px",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                color: PRIMARY_COLOR,
+              }}
+            >
+              <span>${dataset.price} USD</span>
             </Box>
           </Box>
         </Box>
@@ -1292,18 +1295,20 @@ function DatasetCard({ dataset, viewType = "grid" }) {
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          {dataset.avatars.map((avatar, index) => (
-            <Avatar
-              key={index}
-              src={avatar}
-              sx={{
-                width: 24,
-                height: 24,
-                border: `2px solid ${PRIMARY_COLOR}`,
-              }}
-            />
-          ))}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.6,
+            padding: "6px 12px",
+            backgroundColor: "#e6f7f6",
+            borderRadius: "6px",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            color: PRIMARY_COLOR,
+          }}
+        >
+          <span>${dataset.price} USD</span>
         </Box>
       </Box>
     </Card>
