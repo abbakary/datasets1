@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -10,6 +10,7 @@ import {
   Avatar,
   IconButton,
   InputAdornment,
+  Chip,
 } from "@mui/material";
 import {
   Search,
@@ -21,15 +22,30 @@ import {
   FileIcon,
   HardDrive,
   Download,
+  X,
 } from "lucide-react";
 import PageLayout from "../components/PageLayout";
 import CategorySidebar from "../components/CategorySidebar";
 
 const PRIMARY_COLOR = "#61C5C3";
 
+// Default first category data
+const DEFAULT_CATEGORY = {
+  id: "agriculture",
+  name: "Agriculture and Environment",
+  icon: "🌾",
+  datasetCount: 24,
+  subcategories: [
+    { id: "agriculture-sub", name: "Agriculture", datasetCount: 8 },
+    { id: "fisheries", name: "Fisheries", datasetCount: 5 },
+    { id: "forestry", name: "Forestry", datasetCount: 4 },
+    { id: "environment", name: "Environment & Climate", datasetCount: 7 },
+  ],
+};
+
 export default function DatasetsPage() {
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(DEFAULT_CATEGORY);
 
   const trendingDatasets = [
     {
@@ -129,12 +145,6 @@ export default function DatasetsPage() {
     );
   });
 
-  const categoryTitle = selectedCategory?.selectedSubcategory
-    ? selectedCategory.selectedSubcategory.name
-    : selectedCategory
-    ? selectedCategory.name
-    : "All Datasets";
-
   return (
     <PageLayout>
       <Box
@@ -213,38 +223,154 @@ export default function DatasetsPage() {
 
             {/* Main Content */}
             <Box>
-              {/* Category Header */}
+              {/* Category Header with Subcategory Chips */}
               <Box
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mb: 3,
+                  mb: 4,
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-                  <TrendingUp size={20} color="#111827" />
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+                    <TrendingUp size={20} color="#111827" />
+                    <Typography
+                      sx={{
+                        fontSize: "1.3rem",
+                        fontWeight: 700,
+                        color: "#111827",
+                      }}
+                    >
+                      All Datasets
+                    </Typography>
+                  </Box>
+
                   <Typography
                     sx={{
-                      fontSize: "1.3rem",
-                      fontWeight: 700,
-                      color: "#111827",
+                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                      color: PRIMARY_COLOR,
+                      cursor: "pointer",
                     }}
                   >
-                    {categoryTitle}
+                    See All
                   </Typography>
                 </Box>
 
-                <Typography
-                  sx={{
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    color: PRIMARY_COLOR,
-                    cursor: "pointer",
-                  }}
-                >
-                  See All
-                </Typography>
+                {/* Subcategory Chips */}
+                {selectedCategory && selectedCategory.subcategories && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1.2,
+                      flexWrap: "wrap",
+                      mt: 2,
+                    }}
+                  >
+                    {/* "All" chip for this category */}
+                    <Chip
+                      label={selectedCategory.name}
+                      onClick={() => {
+                        setSelectedCategory({
+                          ...selectedCategory,
+                          selectedSubcategory: null,
+                        });
+                      }}
+                      variant={
+                        !selectedCategory.selectedSubcategory
+                          ? "filled"
+                          : "outlined"
+                      }
+                      sx={{
+                        borderRadius: "6px",
+                        fontSize: "0.85rem",
+                        height: 32,
+                        px: 1,
+                        backgroundColor:
+                          !selectedCategory.selectedSubcategory
+                            ? PRIMARY_COLOR
+                            : "#fff",
+                        color: !selectedCategory.selectedSubcategory
+                          ? "#fff"
+                          : "#374151",
+                        borderColor: "#d1d5db",
+                        fontWeight: 600,
+                        "&:hover": {
+                          backgroundColor: !selectedCategory.selectedSubcategory
+                            ? PRIMARY_COLOR
+                            : "#e6f7f6",
+                        },
+                      }}
+                    />
+
+                    {/* Subcategory chips */}
+                    {selectedCategory.subcategories.map((subcategory) => (
+                      <Chip
+                        key={subcategory.id}
+                        label={subcategory.name}
+                        onClick={() => {
+                          setSelectedCategory({
+                            ...selectedCategory,
+                            selectedSubcategory: subcategory,
+                          });
+                        }}
+                        variant={
+                          selectedCategory.selectedSubcategory?.id ===
+                          subcategory.id
+                            ? "filled"
+                            : "outlined"
+                        }
+                        onDelete={
+                          selectedCategory.selectedSubcategory?.id ===
+                          subcategory.id
+                            ? () => {
+                                setSelectedCategory({
+                                  ...selectedCategory,
+                                  selectedSubcategory: null,
+                                });
+                              }
+                            : undefined
+                        }
+                        deleteIcon={
+                          selectedCategory.selectedSubcategory?.id ===
+                          subcategory.id ? (
+                            <X size={14} />
+                          ) : undefined
+                        }
+                        sx={{
+                          borderRadius: "6px",
+                          fontSize: "0.85rem",
+                          height: 32,
+                          px: 1,
+                          backgroundColor:
+                            selectedCategory.selectedSubcategory?.id ===
+                            subcategory.id
+                              ? PRIMARY_COLOR
+                              : "#fff",
+                          color:
+                            selectedCategory.selectedSubcategory?.id ===
+                            subcategory.id
+                              ? "#fff"
+                              : "#374151",
+                          borderColor: "#d1d5db",
+                          fontWeight: 500,
+                          "&:hover": {
+                            backgroundColor:
+                              selectedCategory.selectedSubcategory?.id ===
+                              subcategory.id
+                                ? PRIMARY_COLOR
+                                : "#e6f7f6",
+                          },
+                        }}
+                      />
+                    ))}
+                  </Box>
+                )}
               </Box>
 
               {/* Datasets Grid */}

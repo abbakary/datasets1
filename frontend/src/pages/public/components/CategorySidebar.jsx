@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Box, Typography, Paper, Collapse, Badge } from "@mui/material";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { Box, Typography, Paper, Badge } from "@mui/material";
 
 const PRIMARY_COLOR = "#61C5C3";
 
@@ -126,17 +125,7 @@ const categoriesData = [
 ];
 
 export default function CategorySidebar({ onCategorySelect, selectedCategory }) {
-  const [expandedCategories, setExpandedCategories] = useState(new Set());
-
-  const toggleCategory = (categoryId) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
-    }
-    setExpandedCategories(newExpanded);
-  };
+  const [hoveredCategoryId, setHoveredCategoryId] = useState(null);
 
   const handleSelectCategory = (category) => {
     onCategorySelect(category);
@@ -148,6 +137,10 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
       selectedSubcategory: subcategory,
     });
   };
+
+  const hoveredCategory = categoriesData.find(
+    (cat) => cat.id === hoveredCategoryId
+  );
 
   return (
     <Box
@@ -164,6 +157,7 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
           xs: 3,
           md: 0,
         },
+        position: "relative",
       }}
     >
       <Paper
@@ -190,18 +184,16 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
 
         <Box sx={{ maxHeight: "calc(100vh - 300px)", overflowY: "auto" }}>
           {categoriesData.map((category) => {
-            const isExpanded = expandedCategories.has(category.id);
             const isSelected =
               selectedCategory?.id === category.id &&
               !selectedCategory?.selectedSubcategory;
 
             return (
-              <Box key={category.id}>
+              <Box key={category.id} sx={{ position: "relative" }}>
                 <Box
-                  onClick={() => {
-                    toggleCategory(category.id);
-                    handleSelectCategory(category);
-                  }}
+                  onMouseEnter={() => setHoveredCategoryId(category.id)}
+                  onMouseLeave={() => setHoveredCategoryId(null)}
+                  onClick={() => handleSelectCategory(category)}
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -210,7 +202,9 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
                     py: 1.8,
                     cursor: "pointer",
                     backgroundColor: isSelected ? "#e6f7f6" : "transparent",
-                    borderLeft: isSelected ? `4px solid ${PRIMARY_COLOR}` : "4px solid transparent",
+                    borderLeft: isSelected
+                      ? `4px solid ${PRIMARY_COLOR}`
+                      : "4px solid transparent",
                     transition: "all 0.2s ease",
                     "&:hover": {
                       backgroundColor: "#f0fffe",
@@ -242,79 +236,87 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
                       {category.datasetCount} datasets
                     </Typography>
                   </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      color: isSelected ? PRIMARY_COLOR : "#9ca3af",
-                      transition: "transform 0.2s ease",
-                      transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                    }}
-                  >
-                    <ChevronRight size={18} />
-                  </Box>
                 </Box>
 
-                <Collapse in={isExpanded} timeout="auto">
-                  {category.subcategories.map((subcategory) => {
-                    const isSubSelected =
-                      selectedCategory?.selectedSubcategory?.id ===
-                      subcategory.id;
+                {/* Hover Submenu */}
+                {hoveredCategoryId === category.id && (
+                  <Box
+                    onMouseEnter={() => setHoveredCategoryId(category.id)}
+                    onMouseLeave={() => setHoveredCategoryId(null)}
+                    sx={{
+                      position: "absolute",
+                      left: "100%",
+                      top: 0,
+                      ml: 1,
+                      minWidth: 270,
+                      backgroundColor: "#fff",
+                      border: `1px solid ${PRIMARY_COLOR}`,
+                      borderRadius: "12px",
+                      boxShadow: "0 10px 30px rgba(0, 0, 0, 0.12)",
+                      zIndex: 1000,
+                      py: 1,
+                    }}
+                  >
+                    {category.subcategories.map((subcategory) => {
+                      const isSubSelected =
+                        selectedCategory?.selectedSubcategory?.id ===
+                        subcategory.id;
 
-                    return (
-                      <Box
-                        key={subcategory.id}
-                        onClick={() =>
-                          handleSelectSubcategory(category, subcategory)
-                        }
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          px: 5,
-                          py: 1.3,
-                          cursor: "pointer",
-                          backgroundColor: isSubSelected
-                            ? "#e6f7f6"
-                            : "transparent",
-                          borderLeft: isSubSelected
-                            ? `3px solid ${PRIMARY_COLOR}`
-                            : "3px solid transparent",
-                          color: isSubSelected ? PRIMARY_COLOR : "#374151",
-                          transition: "all 0.2s ease",
-                          "&:hover": {
-                            backgroundColor: "#f0fffe",
-                          },
-                        }}
-                      >
-                        <Typography
+                      return (
+                        <Box
+                          key={subcategory.id}
+                          onClick={() =>
+                            handleSelectSubcategory(category, subcategory)
+                          }
                           sx={{
-                            fontSize: "0.9rem",
-                            fontWeight: isSubSelected ? 600 : 500,
-                            flex: 1,
-                          }}
-                        >
-                          {subcategory.name}
-                        </Typography>
-                        <Badge
-                          badgeContent={subcategory.datasetCount}
-                          sx={{
-                            "& .MuiBadge-badge": {
-                              backgroundColor:
-                                isSubSelected ? PRIMARY_COLOR : "#d1d5db",
-                              color: isSubSelected ? "#fff" : "#374151",
-                              fontSize: "0.7rem",
-                              height: 20,
-                              minWidth: 20,
-                              padding: "0 4px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            px: 2.5,
+                            py: 1.2,
+                            cursor: "pointer",
+                            backgroundColor: isSubSelected
+                              ? "#e6f7f6"
+                              : "transparent",
+                            borderLeft: isSubSelected
+                              ? `3px solid ${PRIMARY_COLOR}`
+                              : "3px solid transparent",
+                            color: isSubSelected ? PRIMARY_COLOR : "#374151",
+                            transition: "all 0.2s ease",
+                            "&:hover": {
+                              backgroundColor: "#f0fffe",
                             },
                           }}
-                        />
-                      </Box>
-                    );
-                  })}
-                </Collapse>
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: "0.9rem",
+                              fontWeight: isSubSelected ? 600 : 500,
+                              flex: 1,
+                            }}
+                          >
+                            {subcategory.name}
+                          </Typography>
+                          <Badge
+                            badgeContent={subcategory.datasetCount}
+                            sx={{
+                              "& .MuiBadge-badge": {
+                                backgroundColor: isSubSelected
+                                  ? PRIMARY_COLOR
+                                  : "#d1d5db",
+                                color: isSubSelected ? "#fff" : "#374151",
+                                fontSize: "0.7rem",
+                                height: 20,
+                                minWidth: 20,
+                                padding: "0 4px",
+                              },
+                            }}
+                          />
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                )}
               </Box>
             );
           })}
