@@ -543,7 +543,7 @@ export default function DatasetsPage() {
 
             {/* Main Content */}
             <Box>
-              {/* Header with Controls - Only show controls if subcategory selected */}
+              {/* Header with Trending Datasets Title */}
               <Box
                 sx={{
                   display: "flex",
@@ -668,8 +668,7 @@ export default function DatasetsPage() {
                 )}
               </Box>
 
-              {/* Category Chips Row - Only show if category/subcategory selected */}
-              {selectedCategory && (
+              {/* Category Chips Row - Always show with "All Datasets" visible by default */}
               <Box
                 sx={{
                   display: "flex",
@@ -679,7 +678,7 @@ export default function DatasetsPage() {
                   alignItems: "center",
                 }}
               >
-                {/* "All Datasets" Chip */}
+                {/* "All Datasets" Chip - Always visible */}
                 <Chip
                   label="All Datasets"
                   onClick={() => setSelectedCategory(null)}
@@ -701,7 +700,7 @@ export default function DatasetsPage() {
                   }}
                 />
 
-                {/* Main Category Chip (if selected) */}
+                {/* Main Category Chip - Shows when category is selected */}
                 {selectedCategory && (
                   <Chip
                     label={selectedCategory.name}
@@ -744,7 +743,7 @@ export default function DatasetsPage() {
                   />
                 )}
 
-                {/* Subcategory Chips (if selected) */}
+                {/* Subcategory Chips - Dynamically appear when category is selected */}
                 {selectedCategory &&
                   selectedCategory.subcategories &&
                   selectedCategory.subcategories.map((subcategory) => (
@@ -808,7 +807,6 @@ export default function DatasetsPage() {
                     />
                   ))}
               </Box>
-              )}
 
               {/* Datasets Grid/List */}
               <Box
