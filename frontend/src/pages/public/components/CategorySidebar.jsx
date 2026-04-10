@@ -141,10 +141,6 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
     });
   };
 
-  const hoveredCategory = categoriesData.find(
-    (cat) => cat.id === hoveredCategoryId
-  );
-
   return (
     <Box
       sx={{
@@ -168,7 +164,7 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
           backgroundColor: "#fff",
           border: "1px solid #e5e7eb",
           borderRadius: "12px",
-          overflow: "visible",
+          overflow: "hidden",
         }}
       >
         <Box sx={{ p: 2.5 }}>
@@ -184,7 +180,31 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
           </Typography>
         </Box>
 
-        <Box sx={{ maxHeight: "calc(100vh - 300px)", overflowY: "auto", overflowX: "visible" }}>
+        <Box
+          sx={{
+            maxHeight: "calc(100vh - 300px)",
+            overflowY: "auto",
+            overflowX: "visible",
+            pr: 0.5,
+            // Hide scrollbar but keep scrolling functionality
+            "&::-webkit-scrollbar": {
+              width: "6px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#d1d5db",
+              borderRadius: "3px",
+              "&:hover": {
+                background: "#9ca3af",
+              },
+            },
+            // Firefox
+            scrollbarWidth: "thin",
+            scrollbarColor: "#d1d5db transparent",
+          }}
+        >
           {categoriesData.map((category) => {
             const isSelected =
               selectedCategory?.id === category.id &&
@@ -192,11 +212,17 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
             const isHovered = hoveredCategoryId === category.id;
 
             return (
-              <Box key={category.id} sx={{ position: "relative" }}>
+              <Box
+                key={category.id}
+                onMouseEnter={() => setHoveredCategoryId(category.id)}
+                onMouseLeave={() => setHoveredCategoryId(null)}
+                sx={{
+                  position: "relative",
+                  overflow: "visible",
+                }}
+              >
                 {/* Category Item */}
                 <Box
-                  onMouseEnter={() => setHoveredCategoryId(category.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
                   onClick={() => handleSelectCategory(category)}
                   sx={{
                     display: "flex",
@@ -242,11 +268,9 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
                   </Box>
                 </Box>
 
-                {/* Hover Submenu - Appears on hover */}
+                {/* Hover Submenu - Shows on hover */}
                 {isHovered && (
                   <Box
-                    onMouseEnter={() => setHoveredCategoryId(category.id)}
-                    onMouseLeave={() => setHoveredCategoryId(null)}
                     sx={{
                       position: "fixed",
                       left: {
@@ -269,7 +293,17 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
                       boxShadow: "0 12px 32px rgba(97, 197, 195, 0.15)",
                       zIndex: 999,
                       py: 1,
-                      backdropFilter: "blur(0px)",
+                      animation: "fadeIn 0.2s ease-in-out",
+                      "@keyframes fadeIn": {
+                        from: {
+                          opacity: 0,
+                          transform: "scale(0.95)",
+                        },
+                        to: {
+                          opacity: 1,
+                          transform: "scale(1)",
+                        },
+                      },
                     }}
                   >
                     {category.subcategories.map((subcategory) => {
@@ -280,11 +314,9 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
                       return (
                         <Box
                           key={subcategory.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectSubcategory(category, subcategory);
-                            setHoveredCategoryId(null);
-                          }}
+                          onClick={() =>
+                            handleSelectSubcategory(category, subcategory)
+                          }
                           sx={{
                             display: "flex",
                             alignItems: "center",
