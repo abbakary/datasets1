@@ -127,6 +127,7 @@ const categoriesData = [
 
 export default function CategorySidebar({ onCategorySelect, selectedCategory }) {
   const [hoveredCategoryId, setHoveredCategoryId] = useState(null);
+  const [hoveredItemPosition, setHoveredItemPosition] = useState(null);
 
   const handleSelectCategory = (category) => {
     onCategorySelect({
@@ -141,6 +142,8 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
       selectedSubcategory: subcategory,
     });
   };
+
+  const hoveredCategory = categoriesData.find(c => c.id === hoveredCategoryId);
 
   return (
     <Box
@@ -167,6 +170,7 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
           border: "1px solid #e5e7eb",
           borderRadius: "12px",
           overflow: "visible",
+          position: "relative",
         }}
       >
         <Box sx={{ p: 2.5 }}>
@@ -187,14 +191,11 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
             maxHeight: "calc(100vh - 300px)",
             overflowY: "auto",
             overflowX: "visible",
-            // Hide scrollbar completely but keep scrolling functionality
             "&::-webkit-scrollbar": {
               display: "none",
             },
-            // Firefox
             scrollbarWidth: "none",
             msOverflowStyle: "none",
-            position: "relative",
           }}
         >
           {categoriesData.map((category) => {
@@ -206,167 +207,169 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
             return (
               <Box
                 key={category.id}
-                onMouseEnter={() => setHoveredCategoryId(category.id)}
-                onMouseLeave={() => setHoveredCategoryId(null)}
-                sx={{
-                  position: "relative",
-                  overflow: "visible",
+                onMouseEnter={(e) => {
+                  setHoveredCategoryId(category.id);
+                  setHoveredItemPosition(e.currentTarget.getBoundingClientRect());
                 }}
+                onMouseLeave={() => {
+                  setHoveredCategoryId(null);
+                  setHoveredItemPosition(null);
+                }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  px: 2.5,
+                  py: 1.8,
+                  cursor: "pointer",
+                  backgroundColor: isSelected ? "#e6f7f6" : "transparent",
+                  borderLeft: isSelected
+                    ? `4px solid ${PRIMARY_COLOR}`
+                    : "4px solid transparent",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "#f0fffe",
+                  },
+                }}
+                onClick={() => handleSelectCategory(category)}
               >
-                {/* Category Item */}
-                <Box
-                  onClick={() => handleSelectCategory(category)}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    px: 2.5,
-                    py: 1.8,
-                    cursor: "pointer",
-                    backgroundColor: isSelected ? "#e6f7f6" : "transparent",
-                    borderLeft: isSelected
-                      ? `4px solid ${PRIMARY_COLOR}`
-                      : "4px solid transparent",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      backgroundColor: "#f0fffe",
-                    },
-                  }}
-                >
-                  <Typography sx={{ fontSize: "1.3rem", flexShrink: 0 }}>
-                    {category.icon}
-                  </Typography>
+                <Typography sx={{ fontSize: "1.3rem", flexShrink: 0 }}>
+                  {category.icon}
+                </Typography>
 
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      sx={{
-                        fontSize: "0.95rem",
-                        fontWeight: 600,
-                        color: isSelected ? PRIMARY_COLOR : "#111827",
-                        transition: "color 0.2s ease",
-                      }}
-                    >
-                      {category.name}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: "0.8rem",
-                        color: "#6b7280",
-                        mt: 0.3,
-                      }}
-                    >
-                      {category.datasetCount} datasets
-                    </Typography>
-                  </Box>
-
-                  {/* Chevron indicator */}
-                  <ChevronRight
-                    size={20}
-                    style={{
-                      color: isSelected ? PRIMARY_COLOR : "#9ca3af",
-                      flexShrink: 0,
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "0.95rem",
+                      fontWeight: 600,
+                      color: isSelected ? PRIMARY_COLOR : "#111827",
                       transition: "color 0.2s ease",
                     }}
-                  />
-                </Box>
-
-                {/* Hover Submenu - Shows on hover */}
-                {isHovered && (
-                  <Box
+                  >
+                    {category.name}
+                  </Typography>
+                  <Typography
                     sx={{
-                      position: "absolute",
-                      left: "calc(100% + 16px)",
-                      top: 0,
-                      minWidth: 280,
-                      maxWidth: 320,
-                      backgroundColor: "#fff",
-                      border: `1px solid #e5e7eb`,
-                      borderRadius: "12px",
-                      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
-                      zIndex: 999,
-                      py: 1.2,
-                      px: 0.5,
-                      animation: "fadeIn 0.2s ease-in-out",
-                      "@keyframes fadeIn": {
-                        from: {
-                          opacity: 0,
-                          transform: "translateX(-8px)",
-                        },
-                        to: {
-                          opacity: 1,
-                          transform: "translateX(0)",
-                        },
-                      },
+                      fontSize: "0.8rem",
+                      color: "#6b7280",
+                      mt: 0.3,
                     }}
                   >
-                    {category.subcategories.map((subcategory, index) => {
-                      const isSubSelected =
-                        selectedCategory?.selectedSubcategory?.id ===
-                        subcategory.id;
+                    {category.datasetCount} datasets
+                  </Typography>
+                </Box>
 
-                      return (
-                        <Box
-                          key={subcategory.id}
-                          onClick={() =>
-                            handleSelectSubcategory(category, subcategory)
-                          }
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1.2,
-                            px: 2.5,
-                            py: 1.3,
-                            cursor: "pointer",
-                            backgroundColor: isSubSelected
-                              ? "#e6f7f6"
-                              : "transparent",
-                            color: isSubSelected ? PRIMARY_COLOR : "#374151",
-                            transition: "all 0.15s ease",
-                            borderRadius: "8px",
-                            mx: 1,
-                            "&:hover": {
-                              backgroundColor: "#f3fffe",
-                            },
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              fontSize: "0.95rem",
-                              fontWeight: isSubSelected ? 600 : 500,
-                              flex: 1,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              color: "inherit",
-                            }}
-                          >
-                            {subcategory.name}
-                          </Typography>
-                          <Badge
-                            badgeContent={subcategory.datasetCount}
-                            sx={{
-                              "& .MuiBadge-badge": {
-                                backgroundColor: isSubSelected
-                                  ? PRIMARY_COLOR
-                                  : "#d1d5db",
-                                color: isSubSelected ? "#fff" : "#374151",
-                                fontSize: "0.7rem",
-                                height: 20,
-                                minWidth: 20,
-                                padding: "0 4px",
-                                fontWeight: 700,
-                              },
-                            }}
-                          />
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                )}
+                <ChevronRight
+                  size={20}
+                  style={{
+                    color: isSelected ? PRIMARY_COLOR : "#9ca3af",
+                    flexShrink: 0,
+                    transition: "color 0.2s ease",
+                  }}
+                />
               </Box>
             );
           })}
         </Box>
+
+        {/* Hover Submenu - Rendered at Paper level */}
+        {hoveredCategory && (
+          <Box
+            onMouseEnter={() => setHoveredCategoryId(hoveredCategory.id)}
+            onMouseLeave={() => {
+              setHoveredCategoryId(null);
+              setHoveredItemPosition(null);
+            }}
+            sx={{
+              position: "fixed",
+              left: hoveredItemPosition ? `${hoveredItemPosition.right + 16}px` : 0,
+              top: hoveredItemPosition ? `${hoveredItemPosition.top}px` : 0,
+              minWidth: 280,
+              maxWidth: 320,
+              backgroundColor: "#fff",
+              border: `1px solid #e5e7eb`,
+              borderRadius: "12px",
+              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
+              zIndex: 9999,
+              py: 1.2,
+              px: 0.5,
+              animation: "fadeIn 0.2s ease-in-out",
+              "@keyframes fadeIn": {
+                from: {
+                  opacity: 0,
+                  transform: "translateX(-8px)",
+                },
+                to: {
+                  opacity: 1,
+                  transform: "translateX(0)",
+                },
+              },
+            }}
+          >
+            {hoveredCategory.subcategories.map((subcategory) => {
+              const isSubSelected =
+                selectedCategory?.selectedSubcategory?.id ===
+                subcategory.id;
+
+              return (
+                <Box
+                  key={subcategory.id}
+                  onClick={() =>
+                    handleSelectSubcategory(hoveredCategory, subcategory)
+                  }
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.2,
+                    px: 2.5,
+                    py: 1.3,
+                    cursor: "pointer",
+                    backgroundColor: isSubSelected
+                      ? "#e6f7f6"
+                      : "transparent",
+                    color: isSubSelected ? PRIMARY_COLOR : "#374151",
+                    transition: "all 0.15s ease",
+                    borderRadius: "8px",
+                    mx: 1,
+                    "&:hover": {
+                      backgroundColor: "#f3fffe",
+                    },
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "0.95rem",
+                      fontWeight: isSubSelected ? 600 : 500,
+                      flex: 1,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      color: "inherit",
+                    }}
+                  >
+                    {subcategory.name}
+                  </Typography>
+                  <Badge
+                    badgeContent={subcategory.datasetCount}
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        backgroundColor: isSubSelected
+                          ? PRIMARY_COLOR
+                          : "#d1d5db",
+                        color: isSubSelected ? "#fff" : "#374151",
+                        fontSize: "0.7rem",
+                        height: 20,
+                        minWidth: 20,
+                        padding: "0 4px",
+                        fontWeight: 700,
+                      },
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+        )}
       </Paper>
     </Box>
   );
